@@ -1,1 +1,5 @@
 node_modules
+.env
+
+# Ivamar API local session storage
+/data/

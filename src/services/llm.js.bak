@@ -1,0 +1,28 @@
+const OpenAIImport = require("openai");
+
+// Compatibilidad por si el SDK exporta default
+const OpenAI = OpenAIImport.default || OpenAIImport;
+
+function getClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY no está definida en el archivo .env");
+  }
+  return new OpenAI({ apiKey });
+}
+
+async function generateReply({ model, systemPrompt, userMessage }) {
+  const client = getClient();
+
+  const response = await client.responses.create({
+    model,
+    input: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage }
+    ]
+  });
+
+  return response.output_text || "";
+}
+
+module.exports = { generateReply };

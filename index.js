@@ -1,13 +1,43 @@
 const express = require("express");
 const axios = require("axios");
 
+// importar asistente Nayeli
+const nayeliReply = require("./assistants/nayeli");
+
 const app = express();
+app.use(express.json());
+
 const PORT = 3000;
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 
 // Ruta base
 app.get("/", (req, res) => {
   res.send("🌺 Nayeli está viva y escuchando 🌺");
+});
+
+// Ivamar.AI – endpoint único (multi-assistant)
+app.post("/api/chat", (req, res) => {
+  const { assistant, message } = req.body;
+
+  if (!assistant || !message) {
+    return res.status(400).json({
+      error: "Debes enviar assistant y message en el body (JSON)"
+    });
+  }
+
+  // Selector de asistente
+  if (assistant === "nayeli") {
+    const reply = nayeliReply(message);
+    return res.json({
+      ok: true,
+      assistant,
+      reply
+    });
+  }
+
+  return res.status(404).json({
+    error: `Assistant "${assistant}" no existe`
+  });
 });
 
 // Ruta buscar con Google Places
@@ -20,7 +50,6 @@ app.get("/buscar", async (req, res) => {
     });
   }
 
-  // Decidir keywords según país
   let keyword;
   if (pais.toUpperCase() === "PR") {
     keyword = "chinchorro comida criolla";
@@ -38,7 +67,7 @@ app.get("/buscar", async (req, res) => {
       }
     });
 
-    const lugares = response.data.results.map(lugar => ({
+    const lugares = (response.data.results || []).map((lugar) => ({
       nombre: lugar.name,
       rating: lugar.rating || null,
       direccion: lugar.formatted_address
@@ -49,7 +78,6 @@ app.get("/buscar", async (req, res) => {
       ciudad,
       resultados: lugares
     });
-
   } catch (error) {
     res.status(500).json({
       error: "Error llamando a Google Places",
