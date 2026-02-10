@@ -7,7 +7,7 @@ const { logger } = require("./middleware/logger");
 const { apiLimiter } = require("./middleware/rateLimit");
 
 const app = express();
-
+app.set("trust proxy", 1);
 // ------------------------------
 // ✅ Bootstrap (PROD): clients.json en disco persistente
 // ------------------------------
