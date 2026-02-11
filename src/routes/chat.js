@@ -163,7 +163,9 @@ router.post("/chat", requireApiKey, async (req, res) => {
 
     return res.json({ reply, sessionId: sid });
   } catch (err) {
-    const fallback = assistant.reply
+console.error("OPENAI_ERROR:", err?.message || err);
+    
+const fallback = assistant.reply
       ? assistant.reply(String(message))
       : "Servicio temporalmente no disponible.";
 
