@@ -23,7 +23,36 @@ function bootstrapClientsFile() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
   // Si existe, no hacemos nada
-  if (fs.existsSync(clientsFile)) return;
+if (fs.existsSync(clientsFile)) {
+  // Si ya existe, solo lo reemplazamos si es placeholder o si falta la key que viene en env
+  try {
+    const current = JSON.parse(fs.readFileSync(clientsFile, "utf8"));
+    const hasPlaceholder = current?.keys && current.keys["__PLACEHOLDER__"];
+
+    // Si hay JSON real en env, lo intentamos parsear para verificar si hay keys
+    const rawEnv = process.env.IVAMAR_CLIENTS_JSON;
+    if (rawEnv && String(rawEnv).trim()) {
+      const envParsed = JSON.parse(String(rawEnv));
+      const envKeys = envParsed?.keys ? Object.keys(envParsed.keys) : [];
+
+      // Si el archivo actual es placeholder, o no contiene alguna key del env, lo reescribimos
+      const missingAnyEnvKey =
+        envKeys.length > 0 &&
+        (!current?.keys || envKeys.some((k) => !current.keys[k]));
+
+      if (!hasPlaceholder && !missingAnyEnvKey) return;
+      // si es placeholder o faltan keys, seguimos para reescribir abajo
+    } else {
+      // si NO hay env JSON, y NO es placeholder, no tocamos nada
+      if (!hasPlaceholder) return;
+      // si es placeholder y no hay env, lo dejamos (no podemos inventar keys)
+      return;
+    }
+  } catch (e) {
+    // si está corrupto, seguimos para regenerarlo con env o fallback
+  }
+}
+
 
   // Fuente: variable de entorno (JSON string)
   // En Render la vas a setear como Secret: IVAMAR_CLIENTS_JSON
