@@ -1,5 +1,19 @@
 node_modules
 .env
 
-# Ivamar API local session storage
+# Local data / state
 /data/
+mykey.txt
+mykey.txt.save*
+*.log
+
+# Backups / temp files
+*.bak
+*.save
+*.save.*
+*.broken
+.DS_Store
+
+# Weird accidental files
+-H
+-d

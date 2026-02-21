@@ -13,9 +13,16 @@ const { getClientByApiKey } = require("../services/clients");
 const router = express.Router();
 
 // --- Seguridad por Bearer token (API keys por cliente) ---
+
+// --- Seguridad por API key (Bearer recomendado; x-api-key permitido) ---
 function requireApiKey(req, res, next) {
   const auth = req.headers.authorization || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+
+  // soporte legacy
+  const headerKey = String(req.headers["x-api-key"] || "").trim();
+
+  const token = bearer || headerKey;
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -35,6 +42,8 @@ function requireApiKey(req, res, next) {
   req.client = client;
   next();
 }
+
+
 
 // --- helper: timeout para promesas ---
 function withTimeout(promise, ms, label = "Operation") {
