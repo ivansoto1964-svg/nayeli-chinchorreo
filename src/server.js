@@ -3,6 +3,7 @@ const express = require("express");
 
 const chatRoutes = require("./routes/chat");
 const billingRoutes = require("./routes/billing");
+console.log("BILLING ROUTES FILE:", require.resolve("./routes/billing"));
 const stripeWebhookRoutes = require("./routes/stripe.webhook");
 
 const { logger } = require("./middleware/logger");
