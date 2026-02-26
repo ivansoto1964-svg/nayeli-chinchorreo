@@ -7,7 +7,7 @@ const nayeliReply = require("./assistants/nayeli");
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 
 // Ruta base
