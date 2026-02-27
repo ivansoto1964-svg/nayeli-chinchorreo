@@ -14,7 +14,8 @@ const router = express.Router();
 router.get("/debug/env", (req, res) => {
   res.json({
     hasClientsEnv: !!(process.env.IVAMAR_CLIENTS_JSON && process.env.IVAMAR_CLIENTS_JSON.trim()),
-    dataDir: process.env.IVAMAR_DATA_DIR || null,
+    hasOpenAIKey: !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim()),
+     dataDir: process.env.IVAMAR_DATA_DIR || null,
     nodeEnv: process.env.NODE_ENV || null,
   });
 });
