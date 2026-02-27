@@ -17,15 +17,22 @@ const CACHE_TTL_MS = 10_000; // 10 segundos
 
 function loadClientsFromDisk() {
 // ✅ Producción sin archivo: permitir clients desde ENV
+
+// ✅ Producción sin archivo: permitir clients desde ENV
 if (process.env.IVAMAR_CLIENTS_JSON && process.env.IVAMAR_CLIENTS_JSON.trim()) {
   try {
     const db = JSON.parse(process.env.IVAMAR_CLIENTS_JSON);
     if (!db.keys) throw new Error("clients env inválido: falta 'keys'");
-    return db;
+
+    clientsCache = db.keys;
+    lastLoadedAt = Date.now();
+    return;
+
   } catch (e) {
     throw new Error("IVAMAR_CLIENTS_JSON inválido (JSON mal formado)");
   }
 }
+
 
 
 
