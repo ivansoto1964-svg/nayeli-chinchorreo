@@ -16,6 +16,23 @@ let lastLoadedAt = 0;
 const CACHE_TTL_MS = 10_000; // 10 segundos
 
 function loadClientsFromDisk() {
+// ✅ Producción sin archivo: permitir clients desde ENV
+if (process.env.IVAMAR_CLIENTS_JSON && process.env.IVAMAR_CLIENTS_JSON.trim()) {
+  try {
+    const db = JSON.parse(process.env.IVAMAR_CLIENTS_JSON);
+    if (!db.keys) throw new Error("clients env inválido: falta 'keys'");
+    return db;
+  } catch (e) {
+    throw new Error("IVAMAR_CLIENTS_JSON inválido (JSON mal formado)");
+  }
+}
+
+
+
+
+
+
+
   if (!fs.existsSync(CLIENTS_FILE)) {
     throw new Error(`clients.json no existe en ${CLIENTS_FILE}`);
   }
