@@ -11,6 +11,16 @@ const {
 const { getClientByApiKey } = require("../services/clients");
 
 const router = express.Router();
+router.get("/debug/env", (req, res) => {
+  res.json({
+    hasClientsEnv: !!(process.env.IVAMAR_CLIENTS_JSON && process.env.IVAMAR_CLIENTS_JSON.trim()),
+    dataDir: process.env.IVAMAR_DATA_DIR || null,
+    nodeEnv: process.env.NODE_ENV || null,
+  });
+});
+
+
+
 
 // --- Seguridad por Bearer token (API keys por cliente) ---
 
