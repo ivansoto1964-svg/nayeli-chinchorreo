@@ -3,10 +3,26 @@ const Stripe = require("stripe");
 const { generateApiKey } = require("../services/apikeys");
 const { readClientsFile, upsertClientKey } = require("../services/clients.store");
 const requireApiKey = require("../middleware/requireApiKey");
-
-
 const router = express.Router();
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+router.use((req, res, next) => {
+  if (!stripe) {
+    return res.status(503).json({
+      ok: false,
+      error: "billing_unavailable",
+      message: "STRIPE_SECRET_KEY no configurada en el servidor",
+    });
+  }
+  next();
+});
+
+
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+}
+
+
+
 
 const baseUrl = process.env.BASE_URL || "http://localhost:3000";
 
