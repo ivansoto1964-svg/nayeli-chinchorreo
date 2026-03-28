@@ -1,0 +1,129 @@
+{
+  "keys": {
+    "dev-secret": {
+      "clientId": "dev",
+      "name": "Local Dev",
+      "isActive": true,
+      "plan": "dev",
+      "rateLimit": {
+        "windowMs": 60000,
+        "max": 60
+      }
+    },
+    "iv_23e35bee4fe477058dbd338175b5c0291149d0d182b9be75c9883987c3031aca": {
+      "clientId": "loskambu",
+      "name": "Los Kambu",
+      "isActive": true,
+      "plan": "basic",
+      "messageLimit": 1000,
+      "rateLimit": {
+        "windowMs": 60000,
+        "max": 60
+      },
+      "createdAt": "2026-02-12T21:26:24.062Z"
+    },
+    "iv_073ae277254ca677bcad7c71bdca1be55188520baafbc4f47f5921866b59030c": {
+      "clientId": "stripe_cs_test_a1pJ5JPh9aPuRFOgIBHsPw5pGUyFyNtdn6fzYczqcAa6DGXslIygZOTeoF",
+      "name": "stripe",
+      "messageLimit": 1000,
+      "rateLimit": {
+        "windowMs": 60000,
+        "max": 60
+      },
+      "createdAt": "2026-02-13T16:34:15.215Z",
+      "source": "stripe",
+      "stripeSessionId": "cs_test_a1pJ5JPh9aPuRFOgIBHsPw5pGUyFyNtdn6fzYczqcAa6DGXslIygZOTeoF",
+      "email": "stripe@example.com",
+      "plan": "basic",
+      "planName": "Basic",
+      "lastStripeSessionId": "cs_test_a13U4uh4dpWLXULN8qfkDjTGVHwKYyh45QpxW99bncunBwvElSE80lZxyu",
+      "updatedAt": "2026-02-18T21:21:21.175Z",
+      "isActive": true
+    },
+    "iv_04398ef157eab6b7b0d10967d7846aad7bbb39768b1ab856e30e40ebbeee8968": {
+      "clientId": "pending_cs_test_a1fcV8RulrrhgYfTwUj8Q853xomgp0hNrKEDnvqvSC99DIxPKzxBzb9KIi",
+      "name": "Pendiente 001",
+      "email": "pendiente001@example.com",
+      "plan": "standard",
+      "planName": "standard",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1fcV8RulrrhgYfTwUj8Q853xomgp0hNrKEDnvqvSC99DIxPKzxBzb9KIi",
+      "stripeCustomerId": "cus_U0Zh3iK0Hf5fYd",
+      "createdAt": "2026-02-19T14:49:36.767Z"
+    },
+    "iv_7733c3b81bde36bf6ae5d9ca83c8c5191deed9e8d952d161934c497ab2706a67": {
+      "clientId": "pending_cs_test_a1qJi2orkuwAlLUR6WAoGkkHMvzxZVIYUyjw3S7q5KbH0gs2ta4s3aYb9S",
+      "name": "Pendiente 002",
+      "email": "pendiente002@example.com",
+      "plan": "standard",
+      "planName": "standard",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1qJi2orkuwAlLUR6WAoGkkHMvzxZVIYUyjw3S7q5KbH0gs2ta4s3aYb9S",
+      "stripeCustomerId": "cus_U0beAU8sO7fkKX",
+      "createdAt": "2026-02-19T16:51:07.122Z"
+    },
+    "iv_e9f64ca1969ca01cd53c19671d32fd4a9ab14dedf71c1943e711d4cadb913ff5": {
+      "clientId": "pending_cs_test_a1Tg5IVnIc6uWztt1kzxnPAqxGgLQe9se7AXcwZ45av02YFp2aAafTj8MR",
+      "name": "Test Activo 001",
+      "email": "testactivo001@example.com",
+      "plan": "standard",
+      "planName": "standard",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1Tg5IVnIc6uWztt1kzxnPAqxGgLQe9se7AXcwZ45av02YFp2aAafTj8MR",
+      "stripeCustomerId": "cus_U0bpINX2wAqdgB",
+      "createdAt": "2026-02-19T17:02:20.291Z"
+    },
+    "iv_6add500f746630681d950ebd6219136f0c7041a37df69fc752b74181e99bafff": {
+      "clientId": "pending_cs_test_a1ucyCp2u1vHq3vmTcgyGIlWVQEyRKwrQDgy5QqZ73QOb2iWw4JSBYw5Wb",
+      "name": "Test OK 001",
+      "email": "testok001@example.com",
+      "plan": "basic",
+      "planName": "basic",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1QOZINVl7U71hEzfhQAe4Tw957Nvx0SyJkm75HL8TgLYtcmUAlhMM0EHB",
+      "stripeCustomerId": "cus_U0ckgbdy0JhtOw",
+      "createdAt": "2026-02-19T17:59:08.183Z",
+      "updatedAt": "2026-02-19T19:09:16.569Z"
+    },
+    "iv_7304a77ddb8d833f8af217de2de3c63326531b4bbdcc5eb836d822e65f52e0ec": {
+      "clientId": "pending_cs_test_a1xzhieMJtE3r7YzSYvo5JXP9TaiAwnNmDlWu5DYEF9GzsrYUkNcCWgBBO",
+      "name": "verificacion001",
+      "email": "verificacion001@example.com",
+      "plan": "basic",
+      "planName": "basic",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1xzhieMJtE3r7YzSYvo5JXP9TaiAwnNmDlWu5DYEF9GzsrYUkNcCWgBBO",
+      "stripeCustomerId": "cus_U0eEk7yPpAsys0",
+      "createdAt": "2026-02-19T19:31:13.856Z"
+    },
+    "iv_7da80fe4b4e2dec31f409544031550f9b2460e6d80ff70459f2473683f83f4ba": {
+      "clientId": "pending_cs_test_a1XQPYoDeMzxzlqWOZCOomRnGMjJQXoaIJcqcvfZT4Rasc4V8YKkyGUgxF",
+      "name": "Portal Test",
+      "email": "portaltest001@example.com",
+      "plan": "basic",
+      "planName": "basic",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1XQPYoDeMzxzlqWOZCOomRnGMjJQXoaIJcqcvfZT4Rasc4V8YKkyGUgxF",
+      "stripeCustomerId": "cus_U0zuxD4x09F3ej",
+      "createdAt": "2026-02-20T17:55:05.814Z"
+    },
+    "iv_fcdb6567935bd35fbe0a3c05ded893c0bf78f5cc0a733381cadaec86f30724b1": {
+      "clientId": "pending_cs_test_a1jPY1ZVnXawut1E0UeNUj28xWF1tboAJkkj8yFW22dUQhpgpMIHiJJJsU",
+      "name": "Portal Test 002",
+      "email": "portaltest002@example.com",
+      "plan": "basic",
+      "planName": "basic",
+      "isActive": false,
+      "source": "pending",
+      "pendingStripeSessionId": "cs_test_a1jPY1ZVnXawut1E0UeNUj28xWF1tboAJkkj8yFW22dUQhpgpMIHiJJJsU",
+      "stripeCustomerId": "cus_U105Wtf97N3IxF",
+      "createdAt": "2026-02-20T18:05:47.946Z"
+    }
+  }
+}

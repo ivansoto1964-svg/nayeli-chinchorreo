@@ -2,7 +2,8 @@ node_modules
 .env
 
 # Local data / state
-/data/
+/data/*
+!data/clients.json
 mykey.txt
 mykey.txt.save*
 *.log
