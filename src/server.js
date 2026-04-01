@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
+
 
 const chatRoutes = require("./routes/chat");
 const billingRoutes = require("./routes/billing");
@@ -10,6 +12,7 @@ const { logger } = require("./middleware/logger");
 const { apiLimiter } = require("./middleware/rateLimit");
 
 const app = express();
+app.use(cors());
 
 // Trust proxy (Render / rate-limit)
 app.set("trust proxy", 1);
