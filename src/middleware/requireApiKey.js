@@ -20,7 +20,7 @@ function requireApiKey(req, res, next) {
     return res.status(500).json({ error: "Server misconfigured: clients.json" });
   }
 
-  if (!client || client.isActive !== true) {
+if (!client || client.active !== true) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
