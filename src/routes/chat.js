@@ -199,5 +199,144 @@ const fallback = assistant.reply
   }
 });
 
+// --- Blog chat público (sin exponer API key en Blogger) ---
+router.post("/blog-chat", async (req, res) => {
+  const { message, sessionId } = req.body || {};
+
+  if (!message) {
+    return res.status(400).json({
+      error: "Debes enviar message en el body (JSON)",
+    });
+  }
+
+  const assistant = registry["nayeli"];
+  if (!assistant) {
+    return res.status(404).json({
+      error: 'Assistant "nayeli" no existe',
+    });
+  }
+
+  const sid =
+    sessionId && String(sessionId).trim()
+      ? String(sessionId).trim()
+      : `sid_${Date.now()}`;
+
+  const TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS || 20000);
+  const MAX_MESSAGES = Number(process.env.MEMORY_MAX_MESSAGES || 10);
+  const KEEP_RECENT = Number(process.env.MEMORY_KEEP_RECENT || 4);
+
+  const history = getHistory(sid) || [];
+  const summary = getSummary(sid);
+
+  const messages = [
+    { role: "system", content: assistant.systemPrompt || "" },
+    ...(summary
+      ? [{ role: "system", content: `Conversation summary: ${summary}` }]
+      : []),
+    ...history,
+    { role: "user", content: String(message) },
+  ];
+
+  addMessage(sid, "user", String(message));
+
+  try {
+    const reply = await withTimeout(
+      generateReply({
+        model: assistant.model || "gpt-4o-mini",
+        messages,
+      }),
+      TIMEOUT_MS,
+      "OpenAI"
+    );
+
+    addMessage(sid, "assistant", reply);
+
+    const liveHistory = getHistory(sid) || [];
+    if (liveHistory.length >= MAX_MESSAGES) {
+      const existing = getSummary(sid);
+
+      const summaryInput = [
+        ...(existing
+          ? [{ role: "system", content: `Existing summary: ${existing}` }]
+          : []),
+        ...liveHistory,
+      ];
+
+      try {
+        const newSummary = await withTimeout(
+          summarizeConversation(summaryInput),
+          TIMEOUT_MS,
+          "Summarizer"
+        );
+
+        if (newSummary && String(newSummary).trim()) {
+          setSummary(sid, String(newSummary).trim());
+        }
+
+        if (liveHistory.length > KEEP_RECENT) {
+          liveHistory.splice(0, liveHistory.length - KEEP_RECENT);
+        }
+      } catch (e) {}
+    }
+
+    return res.json({ reply, sessionId: sid });
+  } catch (err) {
+    console.error("OPENAI_ERROR:", err?.message || err);
+
+    const fallback = assistant.reply
+      ? assistant.reply(String(message))
+      : "Servicio temporalmente no disponible.";
+
+    addMessage(sid, "assistant", fallback);
+
+    return res.status(200).json({
+      reply: fallback,
+      sessionId: sid,
+      warning: "OpenAI failed or timeout",
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = router;
 
