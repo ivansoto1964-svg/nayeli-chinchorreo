@@ -92,6 +92,33 @@ if (process.env.NODE_ENV !== "production") {
     const history = getHistory(sid) || [];
     const summary = getSummary(sid);
 
+
+
+
+// --- memoria simple de ubicación ---
+let inferredLocation = null;
+
+for (let i = history.length - 1; i >= 0; i--) {
+  const msg = history[i];
+  if (msg.role === "user") {
+    const text = msg.content.toLowerCase();
+
+    if (
+      text.includes("estoy en") ||
+      text.includes("vivo en") ||
+      text.includes("ando por") ||
+      text.includes("en ")
+    ) {
+      inferredLocation = msg.content;
+      break;
+    }
+  }
+}
+
+
+
+
+
     return res.json({
       sessionId: sid,
       summary,
@@ -131,7 +158,11 @@ router.post("/chat", requireApiKey, async (req, res) => {
   const summary = getSummary(sid);
 
   const messages = [
-    { role: "system", content: assistant.systemPrompt || "" },
+    { role: "system", content: assistant.systemPrompt || "" }, 
+...(inferredLocation
+  ? [{ role: "system", content: `User location context: ${inferredLocation}` }]
+  : []),
+
     ...(summary
       ? [{ role: "system", content: `Conversation summary: ${summary}` }]
       : []),
