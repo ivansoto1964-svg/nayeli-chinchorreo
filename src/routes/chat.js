@@ -9,7 +9,7 @@ const {
 } = require("../services/memory.disk");
 
 const { getClientByApiKey } = require("../services/clients");
-
+const { searchPlacesByText } = require("../services/places.google");
 const router = express.Router();
 router.get("/debug/env", (req, res) => {
   res.json({
@@ -234,6 +234,18 @@ const fallback = assistant.reply
 router.post("/blog-chat", async (req, res) => {
   const { message, sessionId } = req.body || {};
 
+const rawMessage = String(message || "").trim().toLowerCase();
+const isFoodQuery =
+  rawMessage.includes("comer") ||
+  rawMessage.includes("restaurant") ||
+  rawMessage.includes("restaurante") ||
+  rawMessage.includes("chinchorro") ||
+  rawMessage.includes("food truck") ||
+  rawMessage.includes("mofongo") ||
+  rawMessage.includes("alcapurria") ||
+  rawMessage.includes("bacalaíto") ||
+  rawMessage.includes("boricua");
+
   if (!message) {
     return res.status(400).json({
       error: "Debes enviar message en el body (JSON)",
@@ -261,6 +273,33 @@ router.post("/blog-chat", async (req, res) => {
 
   const messages = [
     { role: "system", content: assistant.systemPrompt || "" },
+
+...(inferredLocation
+  ? [{
+      role: "system",
+      content: `User location context: ${inferredLocation}`
+    }]
+  : []),
+...(placesContext
+  ? [{
+      role: "system",
+      content:
+        `${placesContext}\n\nUsa estos lugares reales si el usuario pide recomendaciones. No inventes negocios.`
+    }]
+  : []),
+
+
+
+
+
+
+
+
+
+
+
+
+
     ...(summary
       ? [{ role: "system", content: `Conversation summary: ${summary}` }]
       : []),
