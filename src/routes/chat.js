@@ -92,6 +92,42 @@ if (process.env.NODE_ENV !== "production") {
     const history = getHistory(sid) || [];
     const summary = getSummary(sid);
 
+let inferredLocation = null;
+
+for (let i = history.length - 1; i >= 0; i--) {
+  const msg = history[i];
+  if (msg.role === "user") {
+    const text = String(msg.content || "");
+    if (/estoy en|vivo en|ando por|estamos en|por /i.test(text)) {
+      inferredLocation = text;
+      break;
+    }
+  }
+}
+
+let placesContext = "";
+
+if (isFoodQuery && inferredLocation) {
+  try {
+    const places = await searchPlacesByText(
+      `Puerto Rican restaurant in ${inferredLocation}`
+    );
+
+    if (places.length) {
+      const top = places.slice(0, 5).map((p, idx) => {
+        const name = p.displayName?.text || "Lugar";
+        const addr = p.formattedAddress || "Dirección no disponible";
+        const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
+        return `${idx + 1}. ${name} — ${addr} — ${rating}`;
+      });
+
+      placesContext =
+        `Lugares reales encontrados cerca del usuario:\n` + top.join("\n");
+    }
+  } catch (e) {
+    console.error("PLACES_ERROR:", e.message);
+  }
+}
 
 
 
@@ -157,18 +193,38 @@ router.post("/chat", requireApiKey, async (req, res) => {
   const history = getHistory(sid) || [];
   const summary = getSummary(sid);
 
-  const messages = [
-    { role: "system", content: assistant.systemPrompt || "" }, 
-...(inferredLocation
-  ? [{ role: "system", content: `User location context: ${inferredLocation}` }]
-  : []),
+const messages = [
+  { role: "system", content: assistant.systemPrompt || "" },
+  ...(inferredLocation
+    ? [{ role: "system", content: `User location context: ${inferredLocation}` }]
+    : []),
+  ...(placesContext
+    ? [{
+        role: "system",
+        content: `${placesContext}\n\nUsa estos lugares reales si el usuario pide recomendaciones. No inventes negocios.`
+      }]
+    : []),
+  ...(summary
+    ? [{ role: "system", content: `Conversation summary: ${summary}` }]
+    : []),
+  ...history,
+  { role: "user", content: String(message) },
+];
 
-    ...(summary
-      ? [{ role: "system", content: `Conversation summary: ${summary}` }]
-      : []),
-    ...history,
-    { role: "user", content: String(message) },
-  ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   addMessage(sid, "user", String(message));
 
