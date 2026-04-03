@@ -77,6 +77,7 @@ function withTimeout(promise, ms, label = "Operation") {
   });
 }
 
+
 // 🔒 DEBUG MEMORY — solo disponible en desarrollo
 if (process.env.NODE_ENV !== "production") {
   router.get("/debug/memory", requireApiKey, (req, res) => {
@@ -92,69 +93,6 @@ if (process.env.NODE_ENV !== "production") {
     const history = getHistory(sid) || [];
     const summary = getSummary(sid);
 
-let inferredLocation = null;
-
-for (let i = history.length - 1; i >= 0; i--) {
-  const msg = history[i];
-  if (msg.role === "user") {
-    const text = String(msg.content || "");
-    if (/estoy en|vivo en|ando por|estamos en|por /i.test(text)) {
-      inferredLocation = text;
-      break;
-    }
-  }
-}
-
-let placesContext = "";
-
-if (isFoodQuery && inferredLocation) {
-  try {
-    const places = await searchPlacesByText(
-      `Puerto Rican restaurant in ${inferredLocation}`
-    );
-
-    if (places.length) {
-      const top = places.slice(0, 5).map((p, idx) => {
-        const name = p.displayName?.text || "Lugar";
-        const addr = p.formattedAddress || "Dirección no disponible";
-        const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
-        return `${idx + 1}. ${name} — ${addr} — ${rating}`;
-      });
-
-      placesContext =
-        `Lugares reales encontrados cerca del usuario:\n` + top.join("\n");
-    }
-  } catch (e) {
-    console.error("PLACES_ERROR:", e.message);
-  }
-}
-
-
-
-// --- memoria simple de ubicación ---
-let inferredLocation = null;
-
-for (let i = history.length - 1; i >= 0; i--) {
-  const msg = history[i];
-  if (msg.role === "user") {
-    const text = msg.content.toLowerCase();
-
-    if (
-      text.includes("estoy en") ||
-      text.includes("vivo en") ||
-      text.includes("ando por") ||
-      text.includes("en ")
-    ) {
-      inferredLocation = msg.content;
-      break;
-    }
-  }
-}
-
-
-
-
-
     return res.json({
       sessionId: sid,
       summary,
@@ -163,6 +101,33 @@ for (let i = history.length - 1; i >= 0; i--) {
     });
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // --- Chat endpoint ---
 router.post("/chat", requireApiKey, async (req, res) => {
@@ -190,8 +155,98 @@ router.post("/chat", requireApiKey, async (req, res) => {
   const MAX_MESSAGES = Number(process.env.MEMORY_MAX_MESSAGES || 10);
   const KEEP_RECENT = Number(process.env.MEMORY_KEEP_RECENT || 4);
 
-  const history = getHistory(sid) || [];
-  const summary = getSummary(sid);
+const history = getHistory(sid) || [];
+const summary = getSummary(sid);
+
+let inferredLocation = null;
+
+for (let i = history.length - 1; i >= 0; i--) {
+  const msg = history[i];
+  if (msg.role === "user") {
+    const text = String(msg.content || "");
+    if (/estoy en|vivo en|ando por|estamos en|por /i.test(text)) {
+      inferredLocation = text;
+      break;
+    }
+  }
+}
+
+let placesContext = "";
+
+
+
+
+
+
+
+if (isFoodQuery && inferredLocation) {
+  try {
+    const places = await searchPlacesByText(
+      `Puerto Rican restaurant in ${inferredLocation}`
+    );
+
+    if (places.length) {
+      const topPlaces = places.slice(0, 5);
+
+      const formatted = topPlaces.map((p, idx) => {
+        const name = p.displayName?.text || "Lugar";
+        const addr = p.formattedAddress || "Dirección no disponible";
+        const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
+        const maps = p.googleMapsUri ? `\nMapa: ${p.googleMapsUri}` : "";
+        const web = p.websiteUri ? `\nWeb: ${p.websiteUri}` : "";
+
+        return `${idx + 1}. ${name}
+📍 ${addr}
+${rating}${maps}${web}`;
+      });
+
+      const directReply = `¡Wepa! Si estás en ${inferredLocation}, aquí tienes algunos spots reales que encontré para comer boricua:\n\n${formatted.join("\n\n")}\n\nConsejito de Nayeli: verifica horario y menú antes de salir, pa’ evitar corajes.`;
+
+      addMessage(sid, "user", String(message));
+      addMessage(sid, "assistant", directReply);
+
+      return res.json({
+        reply: directReply,
+        sessionId: sid,
+      });
+    }
+  } catch (e) {
+    console.error("PLACES_ERROR:", e.message);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const messages = [
   { role: "system", content: assistant.systemPrompt || "" },
@@ -210,21 +265,6 @@ const messages = [
   ...history,
   { role: "user", content: String(message) },
 ];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   addMessage(sid, "user", String(message));
 
@@ -286,21 +326,22 @@ const fallback = assistant.reply
   }
 });
 
+
 // --- Blog chat público (sin exponer API key en Blogger) ---
 router.post("/blog-chat", async (req, res) => {
   const { message, sessionId } = req.body || {};
 
-const rawMessage = String(message || "").trim().toLowerCase();
-const isFoodQuery =
-  rawMessage.includes("comer") ||
-  rawMessage.includes("restaurant") ||
-  rawMessage.includes("restaurante") ||
-  rawMessage.includes("chinchorro") ||
-  rawMessage.includes("food truck") ||
-  rawMessage.includes("mofongo") ||
-  rawMessage.includes("alcapurria") ||
-  rawMessage.includes("bacalaíto") ||
-  rawMessage.includes("boricua");
+  const rawMessage = String(message || "").trim().toLowerCase();
+  const isFoodQuery =
+    rawMessage.includes("comer") ||
+    rawMessage.includes("restaurant") ||
+    rawMessage.includes("restaurante") ||
+    rawMessage.includes("chinchorro") ||
+    rawMessage.includes("food truck") ||
+    rawMessage.includes("mofongo") ||
+    rawMessage.includes("alcapurria") ||
+    rawMessage.includes("bacalaíto") ||
+    rawMessage.includes("boricua");
 
   if (!message) {
     return res.status(400).json({
@@ -327,35 +368,54 @@ const isFoodQuery =
   const history = getHistory(sid) || [];
   const summary = getSummary(sid);
 
+  let inferredLocation = null;
+
+  for (let i = history.length - 1; i >= 0; i--) {
+    const msg = history[i];
+    if (msg.role === "user") {
+      const text = String(msg.content || "");
+      if (/estoy en|vivo en|ando por|estamos en|por /i.test(text)) {
+        inferredLocation = text;
+        break;
+      }
+    }
+  }
+
+  let placesContext = "";
+
+  if (isFoodQuery && inferredLocation) {
+    try {
+      const places = await searchPlacesByText(
+        `Puerto Rican restaurant in ${inferredLocation}`
+      );
+
+      if (places.length) {
+        const top = places.slice(0, 5).map((p, idx) => {
+          const name = p.displayName?.text || "Lugar";
+          const addr = p.formattedAddress || "Dirección no disponible";
+          const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
+          return `${idx + 1}. ${name} — ${addr} — ${rating}`;
+        });
+
+        placesContext =
+          `Lugares reales encontrados cerca del usuario:\n${top.join("\n")}`;
+      }
+    } catch (e) {
+      console.error("PLACES_ERROR:", e.message);
+    }
+  }
+
   const messages = [
     { role: "system", content: assistant.systemPrompt || "" },
-
-...(inferredLocation
-  ? [{
-      role: "system",
-      content: `User location context: ${inferredLocation}`
-    }]
-  : []),
-...(placesContext
-  ? [{
-      role: "system",
-      content:
-        `${placesContext}\n\nUsa estos lugares reales si el usuario pide recomendaciones. No inventes negocios.`
-    }]
-  : []),
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ...(inferredLocation
+      ? [{ role: "system", content: `User location context: ${inferredLocation}` }]
+      : []),
+    ...(placesContext
+      ? [{
+          role: "system",
+          content: `${placesContext}\n\nUsa estos lugares reales si el usuario pide recomendaciones. No inventes negocios.`
+        }]
+      : []),
     ...(summary
       ? [{ role: "system", content: `Conversation summary: ${summary}` }]
       : []),
@@ -422,35 +482,6 @@ const isFoodQuery =
     });
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
