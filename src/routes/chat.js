@@ -106,29 +106,6 @@ if (process.env.NODE_ENV !== "production") {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // --- Chat endpoint ---
 router.post("/chat", requireApiKey, async (req, res) => {
   const { assistantId, message, sessionId } = req.body || {};
@@ -163,101 +140,23 @@ let inferredLocation = null;
 for (let i = history.length - 1; i >= 0; i--) {
   const msg = history[i];
   if (msg.role === "user") {
-    const text = String(msg.content || "");
-    if (/estoy en|vivo en|ando por|estamos en|por /i.test(text)) {
-      inferredLocation = text;
+    const text = String(msg.content || "").trim();
+
+    const match =
+      text.match(/(?:estoy en|vivo en|ando por|estamos en)\s+(.+)/i) ||
+      text.match(/(?:por)\s+(.+)/i);
+
+    if (match && match[1]) {
+      inferredLocation = match[1].trim();
       break;
     }
   }
 }
 
-let placesContext = "";
-
-
-
-
-
-
-
-if (isFoodQuery && inferredLocation) {
-  try {
-    const places = await searchPlacesByText(
-      `Puerto Rican restaurant in ${inferredLocation}`
-    );
-
-    if (places.length) {
-      const topPlaces = places.slice(0, 5);
-
-      const formatted = topPlaces.map((p, idx) => {
-        const name = p.displayName?.text || "Lugar";
-        const addr = p.formattedAddress || "Dirección no disponible";
-        const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
-        const maps = p.googleMapsUri ? `\nMapa: ${p.googleMapsUri}` : "";
-        const web = p.websiteUri ? `\nWeb: ${p.websiteUri}` : "";
-
-        return `${idx + 1}. ${name}
-📍 ${addr}
-${rating}${maps}${web}`;
-      });
-
-      const directReply = `¡Wepa! Si estás en ${inferredLocation}, aquí tienes algunos spots reales que encontré para comer boricua:\n\n${formatted.join("\n\n")}\n\nConsejito de Nayeli: verifica horario y menú antes de salir, pa’ evitar corajes.`;
-
-      addMessage(sid, "user", String(message));
-      addMessage(sid, "assistant", directReply);
-
-      return res.json({
-        reply: directReply,
-        sessionId: sid,
-      });
-    }
-  } catch (e) {
-    console.error("PLACES_ERROR:", e.message);
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const messages = [
   { role: "system", content: assistant.systemPrompt || "" },
   ...(inferredLocation
     ? [{ role: "system", content: `User location context: ${inferredLocation}` }]
-    : []),
-  ...(placesContext
-    ? [{
-        role: "system",
-        content: `${placesContext}\n\nUsa estos lugares reales si el usuario pide recomendaciones. No inventes negocios.`
-      }]
     : []),
   ...(summary
     ? [{ role: "system", content: `Conversation summary: ${summary}` }]
@@ -331,17 +230,56 @@ const fallback = assistant.reply
 router.post("/blog-chat", async (req, res) => {
   const { message, sessionId } = req.body || {};
 
-  const rawMessage = String(message || "").trim().toLowerCase();
-  const isFoodQuery =
-    rawMessage.includes("comer") ||
-    rawMessage.includes("restaurant") ||
-    rawMessage.includes("restaurante") ||
-    rawMessage.includes("chinchorro") ||
-    rawMessage.includes("food truck") ||
-    rawMessage.includes("mofongo") ||
-    rawMessage.includes("alcapurria") ||
-    rawMessage.includes("bacalaíto") ||
-    rawMessage.includes("boricua");
+const rawMessage = String(message || "").trim().toLowerCase();
+
+const isFoodQuery =
+  rawMessage.includes("comer") ||
+  rawMessage.includes("donde") ||
+  rawMessage.includes("dónde") ||
+  rawMessage.includes("restaurant") ||
+  rawMessage.includes("restaurante") ||
+  rawMessage.includes("comida") ||
+  rawMessage.includes("food") ||
+  rawMessage.includes("food truck") ||
+  rawMessage.includes("chinchorro") ||
+  rawMessage.includes("mofongo") ||
+  rawMessage.includes("alcapurria") ||
+  rawMessage.includes("bacalaíto") ||
+  rawMessage.includes("boricua") ||
+  rawMessage.includes("china") ||
+  rawMessage.includes("chinese") ||
+  rawMessage.includes("mexicana") ||
+  rawMessage.includes("mexican") ||
+  rawMessage.includes("italiana") ||
+  rawMessage.includes("italian") ||
+  rawMessage.includes("japonesa") ||
+  rawMessage.includes("japanese") ||
+  rawMessage.includes("sushi") ||
+  rawMessage.includes("pizza") ||
+  rawMessage.includes("hamburguesa") ||
+  rawMessage.includes("burger") ||
+  rawMessage.includes("mariscos") ||
+  rawMessage.includes("seafood") ||
+  rawMessage.includes("criolla");
+
+function inferCuisineQuery(text) {
+  const patterns = [
+    { regex: /\b(comida china|china|chinese)\b/i, query: "Chinese restaurant" },
+    { regex: /\b(comida mexicana|mexicana|mexican|tacos)\b/i, query: "Mexican restaurant" },
+    { regex: /\b(comida italiana|italiana|italian|pizza|pasta)\b/i, query: "Italian restaurant" },
+    { regex: /\b(japonesa|japanese|sushi|ramen)\b/i, query: "Japanese restaurant" },
+    { regex: /\b(marisco|mariscos|seafood)\b/i, query: "Seafood restaurant" },
+    { regex: /\b(hamburguesa|burger|burgers)\b/i, query: "Burger restaurant" },
+    { regex: /\b(café|coffee|cafecito)\b/i, query: "Cafe" },
+    { regex: /\b(boricua|puertorriqueña|puertorriqueño|puerto rico|mofongo|alcapurria|bacalaíto|chinchorro|criolla)\b/i, query: "Puerto Rican restaurant" },
+  ];
+
+  for (const item of patterns) {
+    if (item.regex.test(text)) return item.query;
+  }
+
+  return "restaurant";
+}
 
   if (!message) {
     return res.status(400).json({
@@ -368,53 +306,80 @@ router.post("/blog-chat", async (req, res) => {
   const history = getHistory(sid) || [];
   const summary = getSummary(sid);
 
-  let inferredLocation = null;
+let inferredLocation = null;
 
-  for (let i = history.length - 1; i >= 0; i--) {
-    const msg = history[i];
-    if (msg.role === "user") {
-      const text = String(msg.content || "");
-      if (/estoy en|vivo en|ando por|estamos en|por /i.test(text)) {
-        inferredLocation = text;
-        break;
-      }
+for (let i = history.length - 1; i >= 0; i--) {
+  const msg = history[i];
+  if (msg.role === "user") {
+    const text = String(msg.content || "").trim();
+
+    const match =
+      text.match(/(?:estoy en|vivo en|ando por|estamos en)\s+(.+)/i) ||
+      text.match(/(?:por)\s+(.+)/i);
+
+    if (match && match[1]) {
+      inferredLocation = match[1].trim();
+      break;
     }
   }
+}
 
-  let placesContext = "";
 
-  if (isFoodQuery && inferredLocation) {
-    try {
-      const places = await searchPlacesByText(
-        `Puerto Rican restaurant in ${inferredLocation}`
-      );
+if (isFoodQuery && inferredLocation) {
+  try {
 
-      if (places.length) {
-        const top = places.slice(0, 5).map((p, idx) => {
-          const name = p.displayName?.text || "Lugar";
-          const addr = p.formattedAddress || "Dirección no disponible";
-          const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
-          return `${idx + 1}. ${name} — ${addr} — ${rating}`;
-        });
+const cuisineQuery = inferCuisineQuery(rawMessage);
+const places = await searchPlacesByText(
+  `${cuisineQuery} in ${inferredLocation}`
+);
 
-        placesContext =
-          `Lugares reales encontrados cerca del usuario:\n${top.join("\n")}`;
-      }
-    } catch (e) {
-      console.error("PLACES_ERROR:", e.message);
+    if (places.length) {
+      const topPlaces = places.slice(0, 5);
+
+      const formatted = topPlaces.map((p, idx) => {
+        const name = p.displayName?.text || "Lugar";
+        const addr = p.formattedAddress || "Dirección no disponible";
+        const rating = p.rating ? `⭐ ${p.rating}` : "Sin rating";
+        const maps = p.googleMapsUri ? `\nMapa: ${p.googleMapsUri}` : "";
+        const web = p.websiteUri ? `\nWeb: ${p.websiteUri}` : "";
+
+        return `${idx + 1}. ${name}
+📍 ${addr}
+
+
+${rating}${maps}${web}`;
+      });
+
+
+const directReply = `¡Wepa! Si estás en ${inferredLocation}, aquí tienes algunos lugares reales que encontré:
+
+${formatted.join("\n\n")}
+
+Consejito de Nayeli: verifica horario y menú antes de salir, pa’ evitar corajes.`;
+
+
+
+
+
+
+      addMessage(sid, "user", String(message));
+      addMessage(sid, "assistant", directReply);
+
+      return res.json({
+        reply: directReply,
+        sessionId: sid,
+      });
     }
+  } catch (e) {
+    console.error("PLACES_ERROR:", e.message);
   }
+}
+
 
   const messages = [
     { role: "system", content: assistant.systemPrompt || "" },
     ...(inferredLocation
       ? [{ role: "system", content: `User location context: ${inferredLocation}` }]
-      : []),
-    ...(placesContext
-      ? [{
-          role: "system",
-          content: `${placesContext}\n\nUsa estos lugares reales si el usuario pide recomendaciones. No inventes negocios.`
-        }]
       : []),
     ...(summary
       ? [{ role: "system", content: `Conversation summary: ${summary}` }]
