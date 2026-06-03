@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "axios": "^1.13.2",
     "cors": "^2.8.6",

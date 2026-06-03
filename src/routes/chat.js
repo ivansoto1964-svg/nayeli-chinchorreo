@@ -14,7 +14,7 @@ const router = express.Router();
 router.get("/debug/env", (req, res) => {
   res.json({
     hasClientsEnv: !!(process.env.IVAMAR_CLIENTS_JSON && process.env.IVAMAR_CLIENTS_JSON.trim()),
-    hasOpenAIKey: !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim()),
+    hasAIKey: !!(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim()),
      dataDir: process.env.IVAMAR_DATA_DIR || null,
     nodeEnv: process.env.NODE_ENV || null,
   });
@@ -128,7 +128,7 @@ router.post("/chat", requireApiKey, async (req, res) => {
       ? String(sessionId).trim()
       : `sid_${Date.now()}`;
 
-  const TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS || 20000);
+  const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 20000);
   const MAX_MESSAGES = Number(process.env.MEMORY_MAX_MESSAGES || 10);
   const KEEP_RECENT = Number(process.env.MEMORY_KEEP_RECENT || 4);
 
@@ -209,7 +209,7 @@ const messages = [
 
     return res.json({ reply, sessionId: sid });
   } catch (err) {
-console.error("OPENAI_ERROR:", err?.message || err);
+console.error("AI_ERROR:", err?.message || err);
     
 const fallback = assistant.reply
       ? assistant.reply(String(message))
@@ -299,7 +299,7 @@ function inferCuisineQuery(text) {
       ? String(sessionId).trim()
       : `sid_${Date.now()}`;
 
-  const TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS || 20000);
+  const TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 20000);
   const MAX_MESSAGES = Number(process.env.MEMORY_MAX_MESSAGES || 10);
   const KEEP_RECENT = Number(process.env.MEMORY_KEEP_RECENT || 4);
 
@@ -432,7 +432,7 @@ Consejito de Nayeli: verifica horario y menú antes de salir, pa’ evitar coraj
 
     return res.json({ reply, sessionId: sid });
   } catch (err) {
-    console.error("OPENAI_ERROR:", err?.message || err);
+    console.error("AI_ERROR:", err?.message || err);
 
     const fallback = assistant.reply
       ? assistant.reply(String(message))
